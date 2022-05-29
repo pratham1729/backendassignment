@@ -132,6 +132,12 @@ router.get('/viewbooks', (req, res) => {
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('booksadmin',{data:result,name:session.userid})
     })
+});
+
+router.get('/resolve', (req, res) => {
+    conn.query("select distinct * from request;",(error,result,fields)=>{
+    res.render('adminrequestportal',{data:result,name:session.userid})
+    })
  });
 
  //login requets
@@ -301,6 +307,22 @@ router.post('/removebook', (req, res) => {
     }) 
 });
 
+router.post('/approve', (req, res) => {
+    conn.query(`delete from request where requested_by ="${req.body.username}" and bid=${req.body.bookid};`)
+    conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
+    conn.query("select distinct * from request;",(error,result,fields)=>{
+    res.render('adminrequestportal',{data:result,name:session.userid})
+        })
+
+});
+
+router.post('/deny', (req, res) => {
+    conn.query(`delete from request where requested_by ="${req.body.username}" and bid=${req.body.bookid};`)
+    conn.query("select distinct * from request;",(error,result,fields)=>{
+    res.render('adminrequestportal',{data:result,name:session.userid})
+        })
+
+ });
 //logout request
 router.get('/logout', (req, res) => {
     req.session.destroy();

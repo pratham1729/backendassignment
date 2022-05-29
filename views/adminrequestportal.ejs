@@ -11,23 +11,13 @@
     uname= '<%= name %>';
 </script>
 <body>
-    ADMIN BOOK PORTAL
+    Admin Request Portal
 
-    <table id="booklist"></table>
-
-    <form action="/addbook" method="POST">
-        <input type="text" name="bookid">
-        <input type="text" name="bookname">
-        <input type="submit" value="Add this book"/>
-    </form>
-    <form action="/removebook" method="POST">
-        <input type="text" name="bookid" placeholder="book_id">
-        <input type="submit" value="remove this book"/>
-    </form>
+    <table id="requestlist"></table>
     <form action="/adminhome" method="GET">
     <input type="button" onclick="location.href='/adminhome';" value="Home"/>
     </form>
 </body>
-    <script src="scripts/booksadmin.js">
+    <script src="scripts/requestadmin.js">
     </script>
 </html>

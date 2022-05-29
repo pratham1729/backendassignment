@@ -7,19 +7,17 @@
     <title>Document</title>
 </head>
 <script>
-    books= <%- JSON.stringify(data) %>;
-    request=<%- JSON.stringify(data1) %>;
+    request=<%- JSON.stringify(data) %>;
     uname= '<%= name %>';
 </script>
 <body>
     Admin Request Portal
-
-    <table id="requestlist"></table>
+    <table id="registerlist"></table>
     <form action="/adminhome" method="GET">
     <input type="button" onclick="location.href='/adminhome';" value="Home"/>
     </form>
-    <table id="registerlist"></table>
+    
 </body>
-    <script src="scripts/requestadmin.js">
+    <script src="scripts/adminloginreq.js">
     </script>
 </html>

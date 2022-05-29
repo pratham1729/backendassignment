@@ -63,6 +63,11 @@ conn.query('create database mydb', function(e,r,f){
             if(e) throw e;
             else{console.log("Request table created")}
         })
+        conn.query('create table adminrequest(uname varchar(20), password varchar(100))', function(e,r,f){
+            if(e) throw e;
+            else{console.log("adminrequest table created")
+            }
+        })
     }
 })
 
@@ -106,7 +111,7 @@ router.get('/clienthome', (req, res) => {
  });
 
 router.get('/adminhome', (req, res) => {
-    res.render('admintUser',{data:session.userid});
+    res.render('adminUser',{data:session.userid});
 });
 router.get('/requestportal', (req, res) => {
     conn.query("select * from books;",(error,result1,fields)=>{
@@ -115,7 +120,11 @@ router.get('/requestportal', (req, res) => {
         })
     })
 });
-
+router.get('/gotoadminreq', (req, res) => {
+    conn.query("select * from adminrequest;",(error,result,fields)=>{
+        res.render('adminloginreq',{data:result,name:session.userid});
+})    
+});
 router.get('/issuedbooks', (req, res) => {
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('issued',{data:result,name:session.userid})
@@ -135,8 +144,11 @@ router.get('/viewbooks', (req, res) => {
 });
 
 router.get('/resolve', (req, res) => {
-    conn.query("select distinct * from request;",(error,result,fields)=>{
-    res.render('adminrequestportal',{data:result,name:session.userid})
+    conn.query("select distinct * from request;",(error,result1,fields)=>{
+        conn.query("select * from adminrequest;",(error,result2,fields)=>{
+            res.render('adminrequestportal',{data:result1,name:session.userid,data1:result2})
+        })
+    
     })
  });
 
@@ -217,7 +229,7 @@ router.post('/registeradmin', (req, res) => {
         (error, result, field) => {
             if (result[0] === undefined) {
                 if (name && (password == passwordC)) {
-                    conn.query("INSERT INTO admin VALUES(" + conn.escape(name) + ",'" + hash+"');");
+                    conn.query("INSERT INTO adminrequest VALUES(" + conn.escape(name) + ",'" + hash+"');");
                     res.render('admin');                  
                 }
                 else if (password !== passwordC) {
@@ -307,12 +319,13 @@ router.post('/removebook', (req, res) => {
     }) 
 });
 
+//checkout reqs 
 router.post('/approve', (req, res) => {
     conn.query(`delete from request where requested_by ="${req.body.username}" and bid=${req.body.bookid};`)
     conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
     conn.query("select distinct * from request;",(error,result,fields)=>{
     res.render('adminrequestportal',{data:result,name:session.userid})
-        })
+})
 
 });
 
@@ -323,6 +336,23 @@ router.post('/deny', (req, res) => {
         })
 
  });
+
+// admin verification reqs
+router.post('/approvereq', (req, res) => {
+    conn.query(`delete from adminrequest where uname ="${req.body.username}";`)
+    conn.query(`insert into admin values("${req.body.username}","${req.body.password}");`)
+    conn.query("select * from adminrequest;",(error,result,fields)=>{
+    res.render('adminloginreq',{data:result,name:session.userid})
+})
+
+});
+router.post('/denyreq', (req, res) => {
+    conn.query(`delete from adminrequest where uname ="${req.body.username}";`)
+    conn.query("select * from adminrequest;",(error,result,fields)=>{
+    res.render('adminloginreq',{data:result,name:session.userid})
+})
+
+});
 //logout request
 router.get('/logout', (req, res) => {
     req.session.destroy();

@@ -88,8 +88,11 @@ router.get('/home', (req, res) => {
     res.render('index');
 });
 router.get('/register', (req, res) => {
-   res.render('register');
+   res.render('registerC');
 });
+router.get('/register2', (req, res) => {
+    res.render('registerA');
+ });
 router.get('/client', (req, res) => {
     res.render('client');
 
@@ -102,6 +105,9 @@ router.get('/clienthome', (req, res) => {
     res.render('clientUser',{data:session.userid});
  });
 
+router.get('/adminhome', (req, res) => {
+    res.render('admintUser',{data:session.userid});
+});
 router.get('/requestportal', (req, res) => {
     conn.query("select * from books;",(error,result1,fields)=>{
         conn.query("select * from request;",(error,result2,fields)=>{
@@ -122,7 +128,13 @@ router.get('/requestedbooks', (req, res) => {
     }) 
 });
 
-//login requets
+router.get('/viewbooks', (req, res) => {
+    conn.query("select * from books;",(error,result,fields)=>{
+    res.render('booksadmin',{data:result,name:session.userid})
+    })
+ });
+
+ //login requets
 router.post('/clientlogin', (req, res) => {
     conn.query('select * from client where uname =' + conn.escape(req.body.username) + ';',
         (error, result, fields) => {
@@ -180,8 +192,44 @@ router.post('/adminlogin', (req, res) => {
            }
        });
 });
+//admin register
+router.post('/registeradmin', (req, res) => {
+    let name = req.body.uname;
+    let password = req.body.password;
+    var crypto = require('crypto');
+    const bcrypt = require("bcrypt");
+    const saltRounds = 10;
+    bcrypt
+    .genSalt(saltRounds)
+    .then(salt => {
+    return bcrypt.hash(password, salt);
+    })
+    .then(hash => {
+    // Store hash in your password DB.
+    let passwordC = req.body.passwordC;
+    conn.query("select * from admin where uname = " + conn.escape(name) + ";",
+        (error, result, field) => {
+            if (result[0] === undefined) {
+                if (name && (password == passwordC)) {
+                    conn.query("INSERT INTO admin VALUES(" + conn.escape(name) + ",'" + hash+"');");
+                    res.render('admin');                  
+                }
+                else if (password !== passwordC) {
+                    res.send("Passwords didn't match");
+                }
+                else {
+                    res.send("password must not be emply");
+                }
+            }
+            else {
+                res.send("Username is not unique");
+            }
+        });
+ });
+})
 
-router.post('/register2', (req, res) => {
+//client register
+router.post('/registerclient', (req, res) => {
     let name = req.body.uname;
     let password = req.body.password;
     var crypto = require('crypto');
@@ -236,6 +284,23 @@ router.post('/cancelrequest', (req, res) => {
     res.render('requested',{data:result,name:session.userid})
     }) 
 });
+
+//add book
+
+router.post('/addbook', (req, res) => {
+    conn.query(`insert into books values("${req.body.bookname}",${req.body.bookid},null);`)
+    conn.query("select * from books;",(error,result,fields)=>{
+    res.render('booksadmin',{data:result,name:session.userid})
+    }) 
+});
+//remove book
+router.post('/removebook', (req, res) => {
+    conn.query(`delete from books where bid=${req.body.bookid};`)
+    conn.query("select * from books;",(error,result,fields)=>{
+    res.render('booksadmin',{data:result,name:session.userid})
+    }) 
+});
+
 //logout request
 router.get('/logout', (req, res) => {
     req.session.destroy();

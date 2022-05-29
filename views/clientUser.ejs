@@ -7,8 +7,19 @@
     <title>Document</title>
 </head>
 <body>
+    HI <%= data %>
+    welcome to my library
+    <form action="/requestportal" method="GET">
+    <input type="button" onclick="location.href='/requestportal';" value="Request a book"/>
+    </form>
+    <form action="/issuedbooks" method="GET">
+    <input type="button" onclick="location.href='/issuedbooks';" value="See issued books"/>
+    </form>
+    <form action="/requestedbooks" method="GET">
+    <input type="button" onclick="location.href='/requestedbooks';" value="See requests"/>
+    </form>
     <form action="/logout" method="GET">
-    <input type="button" onclick="location.href='/logout';" value="Home"/>
+    <input type="button" onclick="location.href='/logout';" value="Logout"/>
     </form>
 </body>
 </html>

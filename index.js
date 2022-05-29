@@ -2,10 +2,11 @@ const express = require('express');
 const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
 const conn = require('./db');
+const { NULL } = require('mysql/lib/protocol/constants/types');
 conn.connect();
 const app = express();
 app.set('view engine', 'ejs');
-
+app.use(express.static(__dirname+'/public'));
 // creating 24 hours from milliseconds
 const oneDay = 1000 * 60 * 60 ;
 
@@ -54,7 +55,14 @@ conn.query('create database mydb', function(e,r,f){
             if(e) throw e;
             else{console.log("Admin table created")}
         })
-
+        conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', function(e,r,f){
+            if(e) throw e;
+            else{console.log("Book table created")}
+        })
+        conn.query('create table request(bid int, requested_by varchar(20))', function(e,r,f){
+            if(e) throw e;
+            else{console.log("Request table created")}
+        })
     }
 })
 
@@ -83,48 +91,70 @@ router.get('/register', (req, res) => {
    res.render('register');
 });
 router.get('/client', (req, res) => {
-   res.render('client');
+    res.render('client');
+
 });
 router.get('/admin', (req, res) => {
    res.render('admin');
 });
 
+router.get('/clienthome', (req, res) => {
+    res.render('clientUser',{data:session.userid});
+ });
+
+router.get('/requestportal', (req, res) => {
+    conn.query("select * from books;",(error,result1,fields)=>{
+        conn.query("select * from request;",(error,result2,fields)=>{
+            res.render('requestportal',{data1:result1,data2:result2,name:session.userid});
+        })
+    })
+});
+
+router.get('/issuedbooks', (req, res) => {
+    conn.query("select * from books;",(error,result,fields)=>{
+    res.render('issued',{data:result,name:session.userid})
+    }) 
+});
+
+router.get('/requestedbooks', (req, res) => {
+    conn.query("select distinct * from request where requested_by='"+session.userid+"';",(error,result,fields)=>{
+    res.render('requested',{data:result,name:session.userid})
+    }) 
+});
+
 //login requets
 router.post('/clientlogin', (req, res) => {
-   conn.query('select * from client where uname =' + conn.escape(req.body.username) + ';',
-       (error, result, fields) => {
-           let crypto = require('crypto');
-           const hash = crypto.createHash('sha256').update(req.body.password).digest('base64');
-           if (error) {
-               return res.render('notClient');
-           }
-           else {
-            let crypto = require('crypto');
-            const bcrypt = require("bcrypt");
-            const plainTextPassword1 = req.body.password;
-            const hash = result[0].password;
-            bcrypt
-            .compare(plainTextPassword1, hash)
-            .then(xyz => {
-                if (result[0] != undefined && xyz) {
-                    session=req.session;
-                    session.userid=req.body.username;
-                    console.log(req.session)
-                    return res.render('clientUser');
-            
-               }
-               else {
-                    return res.render('notClient');
-               }
-            })
-           }
-       });
+    conn.query('select * from client where uname =' + conn.escape(req.body.username) + ';',
+        (error, result, fields) => {
+            if (error) {
+                return res.render('notClient');
+            }
+            else {
+                let crypto = require('crypto');
+                const bcrypt = require("bcrypt");
+                const plainTextPassword1 = req.body.password;
+                const hash = result[0].password;
+                bcrypt
+                .compare(plainTextPassword1, hash)
+                .then(xyz => {
+                    if (result[0] != undefined && xyz) {
+                        session=req.session;
+                        session.userid=req.body.username;
+                        console.log(req.session)
+                        return res.render('clientUser',{data:req.body.username});
+                
+                }
+                else {
+                        return res.render('notClient');
+                }
+                })
+            }
+        });
 });
 
 router.post('/adminlogin', (req, res) => {
    conn.query('select * from admin where uname =' + conn.escape(req.body.username) + ';',
        (error, result, fields) => {
-        //    const hash = crypto.createHash('sha256').update(req.body.password).digest('base64');
            if (error) {
                return res.redirect('notUser');
            }
@@ -184,9 +214,28 @@ router.post('/register2', (req, res) => {
             }
         });
  });
-    })
+})
 
+//bookrequest
+router.post('/makerequest', (req, res) => {
+    conn.query(`insert into request values(${req.body.bookid},"${req.body.username}","${req.body.bookname}");`) 
+});
 
+//returnbook
+router.post('/return', (req, res) => {
+    conn.query(`update books set issued_by=null where bid=${req.body.bookid};`)
+    conn.query("select * from books;",(error,result,fields)=>{
+    res.render('issued',{data:result,name:session.userid})
+    }) 
+});
+
+//cancelrequest
+router.post('/cancelrequest', (req, res) => {
+    conn.query(`delete from request where bid=${req.body.bookid} and requested_by="${req.body.username}";`)
+    conn.query("select distinct * from request where requested_by='"+session.userid+"';",(error,result,fields)=>{
+    res.render('requested',{data:result,name:session.userid})
+    }) 
+});
 //logout request
 router.get('/logout', (req, res) => {
     req.session.destroy();

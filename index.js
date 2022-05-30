@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
@@ -12,7 +13,7 @@ const oneDay = 1000 * 60 * 60 ;
 
 //session middleware
 app.use(sessions({
-    secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+    secret: process.env.secret,
     saveUninitialized:true,
     cookie: { maxAge: oneDay },
     resave: false

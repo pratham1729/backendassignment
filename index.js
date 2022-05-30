@@ -35,36 +35,36 @@ conn.connect(function (err) {
 });
 
 
-conn.query('create database mydb', function(e,r,f){
+conn.query('create database mydb', (e,r,f)=>{
     if(e){
-        conn.query('use mydb', function(e,r,f){
+        conn.query('use mydb', (e,r,f)=>{
             if(e) throw e;
             else{console.log("mydb selected")}
         })
     }
     else{
         console.log("mydb created")
-        conn.query('use mydb', function(e,r,f){
+        conn.query('use mydb', (e,r,f)=>{
             if(e) throw e;
             else{console.log("mydb selected")}
         })
-        conn.query('create table client(uname varchar(20), password varchar(100))', function(e,r,f){
+        conn.query('create table client(uname varchar(20), password varchar(100))', (e,r,f)=>{
             if(e) throw e;
             else{console.log("Client table created")}
         })
-        conn.query('create table admin(uname varchar(20), password varchar(100))', function(e,r,f){
+        conn.query('create table admin(uname varchar(20), password varchar(100))', (e,r,f)=>{
             if(e) throw e;
             else{console.log("Admin table created")}
         })
-        conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', function(e,r,f){
+        conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', (e,r,f)=>{
             if(e) throw e;
             else{console.log("Book table created")}
         })
-        conn.query('create table request(bid int, requested_by varchar(20))', function(e,r,f){
+        conn.query('create table request(bid int, requested_by varchar(20))', (e,r,f)=>{
             if(e) throw e;
             else{console.log("Request table created")}
         })
-        conn.query('create table adminrequest(uname varchar(20), password varchar(100))', function(e,r,f){
+        conn.query('create table adminrequest(uname varchar(20), password varchar(100))', (e,r,f)=>{
             if(e) throw e;
             else{console.log("adminrequest table created")
             }
@@ -112,7 +112,11 @@ router.get('/clienthome', (req, res) => {
  });
 
 router.get('/adminhome', (req, res) => {
-    res.render('adminUser',{data:session.userid});
+    if(session.admin===true){
+    res.render('adminUser',{data:session.userid});}
+    else{
+        res.render('nopermission')
+    }
 });
 router.get('/requestportal', (req, res) => {
     conn.query("select * from books;",(error,result1,fields)=>{
@@ -122,9 +126,13 @@ router.get('/requestportal', (req, res) => {
     })
 });
 router.get('/gotoadminreq', (req, res) => {
+    if(session.admin===true){
     conn.query("select * from adminrequest;",(error,result,fields)=>{
         res.render('adminloginreq',{data:result,name:session.userid});
-})    
+})}
+else{
+    res.render('nopermission')
+}
 });
 router.get('/issuedbooks', (req, res) => {
     conn.query("select * from books;",(error,result,fields)=>{
@@ -133,24 +141,33 @@ router.get('/issuedbooks', (req, res) => {
 });
 
 router.get('/requestedbooks', (req, res) => {
-    conn.query("select distinct * from request where requested_by='"+session.userid+"';",(error,result,fields)=>{
+    conn.query(`select distinct * from request where requested_by=${conn.escape(session.userid)};`,(error,result,fields)=>{
     res.render('requested',{data:result,name:session.userid})
-    }) 
+    })
+    
 });
 
 router.get('/viewbooks', (req, res) => {
+    if(session.admin===true){
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('booksadmin',{data:result,name:session.userid})
-    })
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
 
 router.get('/resolve', (req, res) => {
+    if(session.admin===true){
     conn.query("select distinct * from request;",(error,result1,fields)=>{
         conn.query("select * from adminrequest;",(error,result2,fields)=>{
+            console.log(result2)
             res.render('adminrequestportal',{data:result1,name:session.userid,data1:result2})
         })
-    
-    })
+    })}
+    else{
+        res.render('nopermission')
+    }
  });
 
  //login requets
@@ -171,6 +188,7 @@ router.post('/clientlogin', (req, res) => {
                     if (result[0] != undefined && xyz) {
                         session=req.session;
                         session.userid=req.body.username;
+                        session.admin=false;
                         console.log(req.session)
                         return res.render('clientUser',{data:req.body.username});
                 
@@ -200,6 +218,7 @@ router.post('/adminlogin', (req, res) => {
                 if (result[0] != undefined && xyz) {
                     session=req.session;
                     session.userid=req.body.username;
+                    session.admin=true;
                     console.log(req.session)
                     return res.render('adminUser');
             
@@ -285,12 +304,18 @@ router.post('/registerclient', (req, res) => {
 
 //bookrequest
 router.post('/makerequest', (req, res) => {
-    conn.query(`insert into request values(${req.body.bookid},"${req.body.username}","${req.body.bookname}");`) 
+    console.log(req.body.bookname)
+    conn.query(`insert into request values(${conn.escape(req.body.bookid)},${conn.escape(req.body.username)},${conn.escape(req.body.bookname)});`)
+    conn.query("select * from books;",(error,result1,fields)=>{
+        conn.query("select * from request;",(error,result2,fields)=>{
+            res.render('requestportal',{data1:result1,data2:result2,name:session.userid});
+        })
+    })
 });
 
 //returnbook
 router.post('/return', (req, res) => {
-    conn.query(`update books set issued_by=null where bid=${req.body.bookid};`)
+    conn.query(`update books set issued_by=null where bid=${conn.escape(req.body.bookid)};`)
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('issued',{data:result,name:session.userid})
     }) 
@@ -298,8 +323,8 @@ router.post('/return', (req, res) => {
 
 //cancelrequest
 router.post('/cancelrequest', (req, res) => {
-    conn.query(`delete from request where bid=${req.body.bookid} and requested_by="${req.body.username}";`)
-    conn.query("select distinct * from request where requested_by='"+session.userid+"';",(error,result,fields)=>{
+    conn.query(`delete from request where bid=${conn.escape(req.body.bookid)} and requested_by=${conn.escape(req.body.username)};`)
+    conn.query("select distinct * from request where requested_by="+conn.escape(session.userid)+";",(error,result,fields)=>{
     res.render('requested',{data:result,name:session.userid})
     }) 
 });
@@ -307,51 +332,72 @@ router.post('/cancelrequest', (req, res) => {
 //add book
 
 router.post('/addbook', (req, res) => {
-    conn.query(`insert into books values("${req.body.bookname}",${req.body.bookid},null);`)
+    if(session.admin===true){
+    conn.query(`insert into books values("${conn.escape(req.body.bookname)}",${conn.escape(req.body.bookid)},null);`)
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('booksadmin',{data:result,name:session.userid})
-    }) 
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
 //remove book
 router.post('/removebook', (req, res) => {
-    conn.query(`delete from books where bid=${req.body.bookid};`)
+    if(session.admin===true){
+    conn.query(`delete from books where bid=${conn.escape(req.body.bookid)};`)
     conn.query("select * from books;",(error,result,fields)=>{
     res.render('booksadmin',{data:result,name:session.userid})
-    }) 
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
 
 //checkout reqs 
 router.post('/approve', (req, res) => {
-    conn.query(`delete from request where requested_by ="${req.body.username}" and bid=${req.body.bookid};`)
+    if(session.admin===true){
+    conn.query(`delete from request where requested_by ="${conn.escape(req.body.username)}" and bid=${conn.escape(req.body.bookid)};`)
     conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
     conn.query("select distinct * from request;",(error,result,fields)=>{
     res.render('adminrequestportal',{data:result,name:session.userid})
-})
-
+})}
+else{
+    res.render('nopermission')
+}
 });
 
 router.post('/deny', (req, res) => {
-    conn.query(`delete from request where requested_by ="${req.body.username}" and bid=${req.body.bookid};`)
+    if(session.admin===true){
+    conn.query(`delete from request where requested_by ="${conn.escape(req.body.username)}" and bid=${conn.escape(req.body.bookid)};`)
     conn.query("select distinct * from request;",(error,result,fields)=>{
     res.render('adminrequestportal',{data:result,name:session.userid})
-        })
-
+        })}
+        else{
+            res.render('nopermission')
+        }
  });
 
 // admin verification reqs
 router.post('/approvereq', (req, res) => {
-    conn.query(`delete from adminrequest where uname ="${req.body.username}";`)
+    if(session.admin===true){
+    conn.query(`delete from adminrequest where uname=${conn.escape(req.body.username)};`)
     conn.query(`insert into admin values("${req.body.username}","${req.body.password}");`)
     conn.query("select * from adminrequest;",(error,result,fields)=>{
     res.render('adminloginreq',{data:result,name:session.userid})
-})
-
+})}
+else{
+    res.render('nopermission')
+}
 });
 router.post('/denyreq', (req, res) => {
-    conn.query(`delete from adminrequest where uname ="${req.body.username}";`)
+    if(session.admin===true){
+    conn.query(`delete from adminrequest where uname ="${conn.escape(req.body.username)}";`)
     conn.query("select * from adminrequest;",(error,result,fields)=>{
     res.render('adminloginreq',{data:result,name:session.userid})
-})
+})}
+else{
+    res.render('nopermission')
+}
 
 });
 //logout request

@@ -20,21 +20,26 @@
     }
     </style>
 </head>
-<script>
-    books= <%- JSON.stringify(data) %>;
-    uname= '<%= name %>';
-</script>
 <body class="p-3 mb-2 bg-secondary text-white">
     <center>
     <div class="jumbotron">
         <h1>Issued Books</h1>      
     </div>
-    <table id="issuedbooklist"></table>
+    <table id="issuedbooklist">
+        <% booksnumber=data.length %>
+
+        <% for(i=0;i<booksnumber;i++){ %>  
+        <% if(data[i].issued_by===name){ %>
+        <tr><td style="padding:10px"><%= data[i].bid %></td>
+            <td style="padding:10px"><%= data[i].bname %></td>
+            <td style="padding:10px"><form action="/return" method="POST"><input type="text" value="<%= name %>" name="username" style="display:none"><input type="text" value="<%= data[i].bid %>" name="bookid" style="display:none"><input type="submit" value="Return"></form></td>
+        </tr>
+    <% } %>
+<% } %>
+    </table>
     <form action="/clienthome" method="GET">
     <input type="button" onclick="location.href='/clienthome';" value="Home"/>
     </form>
     </center>
 </body>
-    <script src="scripts/issued.js">
-    </script>
 </html>

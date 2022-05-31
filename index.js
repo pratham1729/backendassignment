@@ -175,7 +175,7 @@ router.post('/clientlogin', (req, res) => {
     conn.query('select * from client where uname =' + conn.escape(req.body.username) + ';',
         (error, result, fields) => {
             if (error) {
-                return res.render('notClient');
+                return res.render('failedlogin',{data:"User not found"});
             }
             else {
                 let crypto = require('crypto');
@@ -194,7 +194,7 @@ router.post('/clientlogin', (req, res) => {
                 
                 }
                 else {
-                        return res.render('notClient');
+                        return res.render('failedlogin',{data:"Incorrect Password"});
                 }
                 })
             }
@@ -205,7 +205,7 @@ router.post('/adminlogin', (req, res) => {
    conn.query('select * from admin where uname =' + conn.escape(req.body.username) + ';',
        (error, result, fields) => {
            if (error) {
-               return res.redirect('notUser');
+               return res.render('failedlogin',{data:"User not found"});
            }
            else {
             let crypto = require('crypto');
@@ -224,7 +224,7 @@ router.post('/adminlogin', (req, res) => {
             
                }
                else {
-                    return res.render('notAdmin');
+                    return res.render('failedlogin',{data:"Incorrect Password"});
                }
             })
            }
@@ -253,14 +253,14 @@ router.post('/registeradmin', (req, res) => {
                     res.render('admin');                  
                 }
                 else if (password !== passwordC) {
-                    res.send("Passwords didn't match");
+                    res.render('failedlogin',{data:"Password didn't match"});
                 }
                 else {
-                    res.send("password must not be emply");
+                    res.render('failedlogin',{data:"Password must not be emply"});
                 }
             }
             else {
-                res.send("Username is not unique");
+                res.render('failedlogin',{data:"Username is not unique"});
             }
         });
  });
@@ -289,14 +289,14 @@ router.post('/registerclient', (req, res) => {
                     res.render('client');                  
                 }
                 else if (password !== passwordC) {
-                    res.send("Passwords didn't match");
+                    res.render('failedlogin',{data:"Password didn't match"});
                 }
                 else {
-                    res.send("password must not be emply");
+                    res.render('failedlogin',{data:"Password must not be emply"});
                 }
             }
             else {
-                res.send("Username is not unique");
+                res.render('failedlogin',{data:"Username is not unique"});
             }
         });
  });

@@ -4,15 +4,31 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
     <title>Document</title>
+    <style>
+        input[type=button], input[type=submit], input[type=reset] {
+        background-color: #7160FC;
+        border-radius: 15%;
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        text-decoration: none;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+        </style>
 </head>
 <script>
     books= <%- JSON.stringify(data) %>;
     uname= '<%= name %>';
 </script>
-<body>
-    ADMIN BOOK PORTAL
-
+<body class="p-3 mb-2 bg-secondary text-white">
+    <center>
+    <div class="jumbotron">
+        <h1>Admin Book Portal</h1>      
+    </div>
     <table id="booklist"></table>
 
     <form action="/addbook" method="POST">
@@ -27,6 +43,7 @@
     <form action="/adminhome" method="GET">
     <input type="button" onclick="location.href='/adminhome';" value="Home"/>
     </form>
+    </center>
 </body>
     <script src="scripts/booksadmin.js">
     </script>

@@ -356,7 +356,7 @@ router.post('/removebook', (req, res) => {
 //checkout reqs 
 router.post('/approve', (req, res) => {
     if(session.admin===true){
-    conn.query(`delete from request where requested_by ="${conn.escape(req.body.username)}" and bid=${conn.escape(req.body.bookid)};`)
+    conn.query(`delete from request where requested_by =${conn.escape(req.body.username)} and bid=${conn.escape(req.body.bookid)};`)
     conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
     conn.query("select distinct * from request;",(error,result,fields)=>{
     res.render('adminrequestportal',{data:result,name:session.userid})

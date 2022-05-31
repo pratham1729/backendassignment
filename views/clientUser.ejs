@@ -4,22 +4,43 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <title>Client Books Portal</title>
+    <style>
+        input[type=button], input[type=submit], input[type=reset] {
+        background-color: #7160FC;
+        border-radius: 15%;
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        text-decoration: none;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+        </style>
 </head>
-<body>
-    HI <%= data %>
-    welcome to my library
-    <form action="/requestportal" method="GET">
+<body class="p-3 mb-2 bg-secondary text-white">
+    <center>
+    <div class="jumbotron">
+        <h1>Client Home Page</h1>      
+    </div>
+    Hi <%= data %>
+    <br>
+    Welcome to my Library
+    <br>
+    <form action="/requestportal" method="GET" style="display: inline-block;">
     <input type="button" onclick="location.href='/requestportal';" value="Request a book"/>
     </form>
-    <form action="/issuedbooks" method="GET">
+    <form action="/issuedbooks" method="GET" style="display: inline-block;">
     <input type="button" onclick="location.href='/issuedbooks';" value="See issued books"/>
     </form>
-    <form action="/requestedbooks" method="GET">
+    <form action="/requestedbooks" method="GET" style="display: inline-block;">
     <input type="button" onclick="location.href='/requestedbooks';" value="See requests"/>
     </form>
-    <form action="/logout" method="GET">
+    <form action="/logout" method="GET" style="display: inline-block;">
     <input type="button" onclick="location.href='/logout';" value="Logout"/>
     </form>
+    </center>
 </body>
 </html>

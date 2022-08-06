@@ -4,12 +4,17 @@ const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
 const conn = require('./db');
 const { NULL } = require('mysql/lib/protocol/constants/types');
+const e = require("express");
 conn.connect();
 const app = express();
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname+'/public'));
 // creating 24 hours from milliseconds
 const oneDay = 1000 * 60 * 60 ;
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () =>
+    console.log(`server started at ${PORT}`));
 
 //session middleware
 app.use(sessions({
@@ -42,42 +47,43 @@ conn.connect(function (err) {
 });
 
 
-conn.query('create database mydb', (e,r,f)=>{
-    if(e){
-        conn.query('use mydb', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("mydb selected")}
-        })
-    }
-    else{
-        console.log("mydb created")
-        conn.query('use mydb', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("mydb selected")}
-        })
-        conn.query('create table client(uname varchar(20), password varchar(100))', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("Client table created")}
-        })
-        conn.query('create table admin(uname varchar(20), password varchar(100))', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("Admin table created")}
-        })
-        conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("Book table created")}
-        })
-        conn.query('create table request(bid int, requested_by varchar(20))', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("Request table created")}
-        })
-        conn.query('create table adminrequest(uname varchar(20), password varchar(100))', (e,r,f)=>{
-            if(e) throw e;
-            else{console.log("adminrequest table created")
-            }
-        })
-    }
-})
+// conn.query('create database mydb', (e,r,f)=>{
+//     if(e){
+//         throw e;
+//         conn.query('use mydb', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("mydb selected")}
+//         })
+//     }
+//     else{
+//         console.log("mydb created")
+//         conn.query('use mydb', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("mydb selected")}
+//         })
+//         conn.query('create table client(uname varchar(20), password varchar(100))', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("Client table created")}
+//         })
+//         conn.query('create table admin(uname varchar(20), password varchar(100))', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("Admin table created")}
+//         })
+//         conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("Book table created")}
+//         })
+//         conn.query('create table request(bid int, requested_by varchar(20))', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("Request table created")}
+//         })
+//         conn.query('create table adminrequest(uname varchar(20), password varchar(100))', (e,r,f)=>{
+//             if(e) throw e;
+//             else{console.log("adminrequest table created")
+//             }
+//         })
+//     }
+// })
 
 
 //Body parser
@@ -85,9 +91,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //ENVs
-const PORT = process.env.PORT || 5500;
-app.listen(PORT, () =>
-    console.log(`server started at ${PORT}`));
+
 
 //Requests
 const router = express.Router();

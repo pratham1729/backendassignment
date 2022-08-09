@@ -9,9 +9,11 @@ conn.connect();
 const app = express();
 app.set('view engine', 'ejs');
 app.use(express.static(__dirname+'/public'));
+
 // creating 24 hours from milliseconds
 const oneDay = 1000 * 60 * 60 ;
 
+//ENVs
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () =>
     console.log(`server started at ${PORT}`));
@@ -46,52 +48,9 @@ conn.connect(function (err) {
     }
 });
 
-
-// conn.query('create database mydb', (e,r,f)=>{
-//     if(e){
-//         throw e;
-//         conn.query('use mydb', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("mydb selected")}
-//         })
-//     }
-//     else{
-//         console.log("mydb created")
-//         conn.query('use mydb', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("mydb selected")}
-//         })
-//         conn.query('create table client(uname varchar(20), password varchar(100))', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("Client table created")}
-//         })
-//         conn.query('create table admin(uname varchar(20), password varchar(100))', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("Admin table created")}
-//         })
-//         conn.query('create table books(bname varchar(20), bid int primary key,issued_by varchar(20) default NULL)', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("Book table created")}
-//         })
-//         conn.query('create table request(bid int, requested_by varchar(20))', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("Request table created")}
-//         })
-//         conn.query('create table adminrequest(uname varchar(20), password varchar(100))', (e,r,f)=>{
-//             if(e) throw e;
-//             else{console.log("adminrequest table created")
-//             }
-//         })
-//     }
-// })
-
-
 //Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-//ENVs
-
 
 //Requests
 const router = express.Router();
@@ -344,20 +303,21 @@ router.post('/cancelrequest', (req, res) => {
 
 router.post('/addbook', (req, res) => {
     if(auth(session)){
-    conn.query(`insert into books values("${conn.escape(req.body.bookname)}",${conn.escape(req.body.bookid)},null);`)
-    conn.query("select * from books;",(error,result,fields)=>{
-    res.render('booksadmin',{data:result,name:session.userid})
+        conn.query(`insert into books values("${conn.escape(req.body.bookname)}",${conn.escape(req.body.bookid)},null);`)
+        conn.query("select * from books;",(error,result,fields)=>{
+        res.render('booksadmin',{data:result,name:session.userid})
     })}
     else{
         res.render('nopermission')
     }
 });
+
 //remove book
 router.post('/removebook', (req, res) => {
     if(auth(session)){
-    conn.query(`delete from books where bid=${conn.escape(req.body.bookid)};`)
-    conn.query("select * from books;",(error,result,fields)=>{
-    res.render('booksadmin',{data:result,name:session.userid})
+        conn.query(`delete from books where bid=${conn.escape(req.body.bookid)};`)
+        conn.query("select * from books;",(error,result,fields)=>{
+        res.render('booksadmin',{data:result,name:session.userid})
     })}
     else{
         res.render('nopermission')
@@ -367,50 +327,50 @@ router.post('/removebook', (req, res) => {
 //checkout reqs 
 router.post('/approve', (req, res) => {
     if(auth(session)){
-    conn.query(`delete from request where requested_by =${conn.escape(req.body.username)} and bid=${conn.escape(req.body.bookid)};`)
-    conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
-    conn.query("select distinct * from request;",(error,result,fields)=>{
-    res.render('adminrequestportal',{data:result,name:session.userid})
-})}
-else{
-    res.render('nopermission')
-}
+        conn.query(`delete from request where requested_by =${conn.escape(req.body.username)} and bid=${conn.escape(req.body.bookid)};`)
+        conn.query('update books set issued_by="'+req.body.username+'" where bid ='+req.body.bookid+';')
+        conn.query("select distinct * from request;",(error,result,fields)=>{
+        res.render('adminrequestportal',{data:result,name:session.userid})
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
 
 router.post('/deny', (req, res) => {
     if(auth(session)){
-    conn.query(`delete from request where requested_by ="${conn.escape(req.body.username)}" and bid=${conn.escape(req.body.bookid)};`)
-    conn.query("select distinct * from request;",(error,result,fields)=>{
-    res.render('adminrequestportal',{data:result,name:session.userid})
-        })}
-        else{
-            res.render('nopermission')
-        }
- });
+        conn.query(`delete from request where requested_by ="${conn.escape(req.body.username)}" and bid=${conn.escape(req.body.bookid)};`)
+        conn.query("select distinct * from request;",(error,result,fields)=>{
+        res.render('adminrequestportal',{data:result,name:session.userid})
+    })}
+    else{
+        res.render('nopermission')
+    }
+});
 
 // admin verification reqs
 router.post('/approvereq', (req, res) => {
     if(auth(session)){
-    conn.query(`delete from adminrequest where uname=${conn.escape(req.body.username)};`)
-    conn.query(`insert into admin values("${req.body.username}","${req.body.password}");`)
-    conn.query("select * from adminrequest;",(error,result,fields)=>{
-    res.render('adminloginreq',{data:result,name:session.userid})
-})}
-else{
-    res.render('nopermission')
-}
+        conn.query(`delete from adminrequest where uname=${conn.escape(req.body.username)};`)
+        conn.query(`insert into admin values("${req.body.username}","${req.body.password}");`)
+        conn.query("select * from adminrequest;",(error,result,fields)=>{
+        res.render('adminloginreq',{data:result,name:session.userid})
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
 router.post('/denyreq', (req, res) => {
     if(auth(session)){
-    conn.query(`delete from adminrequest where uname ="${conn.escape(req.body.username)}";`)
-    conn.query("select * from adminrequest;",(error,result,fields)=>{
-    res.render('adminloginreq',{data:result,name:session.userid})
-})}
-else{
-    res.render('nopermission')
-}
-
+        conn.query(`delete from adminrequest where uname ="${conn.escape(req.body.username)}";`)
+        conn.query("select * from adminrequest;",(error,result,fields)=>{
+        res.render('adminloginreq',{data:result,name:session.userid})
+    })}
+    else{
+        res.render('nopermission')
+    }
 });
+
 //logout request
 router.get('/logout', (req, res) => {
     req.session.destroy();
